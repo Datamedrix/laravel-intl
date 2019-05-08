@@ -1,0 +1,36 @@
+{
+    "name": "dmx/laravel-intl",
+    "description": "A lightweight and easy to use internationalization library to enhance your Laravel application.",
+    "keywords": ["datamedrix", "support", "laravel", "internationalization", "intl", "i18n", "l10n"],
+    "license": "MIT",
+    "type": "library",
+    "version": "0.0.0",
+    "require": {
+        "php": "^7.2.0"
+    },
+    "require-dev": {
+        "ext-mbstring": "*",
+        "friendsofphp/php-cs-fixer": "^2.13",
+        "fzaninotto/faker": "^1.8.0",
+        "mockery/mockery": "^1.0",
+        "phpunit/phpunit": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "DMX\\Application\\Intl": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DMX\\Application\\Intl\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "style-fix": "vendor/bin/php-cs-fixer fix",
+        "style-check": "vendor/bin/php-cs-fixer fix --dry-run --using-cache=no"
+    },
+    "config": {
+        "preferred-install": "dist"
+    }
+}
