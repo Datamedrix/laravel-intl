@@ -44,15 +44,15 @@ class LocaleTest extends TestCase
     /**
      * Test.
      *
-     * @param string      $expectedIsoString
-     * @param string      $expectedIETFTag
+     * @param string      $isoString
+     * @param string      $IETFTag
      * @param string      $language
      * @param string|null $territory
      * @param string|null $codeSet
      * @param string|null $modifier
      * @dataProvider getTestData
      */
-    public function testGetter(string $expectedIsoString, string $expectedIETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
+    public function testGetter(string $isoString, string $IETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
     {
         $locale = new Locale($language, $territory, $codeSet, $modifier);
 
@@ -60,41 +60,41 @@ class LocaleTest extends TestCase
         $this->assertEquals(Str::upper($territory), $locale->territory());
         $this->assertEquals($codeSet, $locale->codeSet());
         $this->assertEquals($modifier, $locale->modifier());
-        $this->assertEquals($expectedIsoString, $locale->toISO15897String());
-        $this->assertEquals($expectedIsoString, (string) $locale);
-        $this->assertEquals($expectedIETFTag, $locale->toIETFLanguageTag());
+        $this->assertEquals($isoString, $locale->toISO15897String());
+        $this->assertEquals($isoString, (string) $locale);
+        $this->assertEquals($IETFTag, $locale->toIETFLanguageTag());
     }
 
     /**
      * Test.
      *
-     * @param string      $expectedIsoString
-     * @param string      $expectedIETFTag
+     * @param string      $isoString
+     * @param string      $IETFTag
      * @param string      $language
      * @param string|null $territory
      * @param string|null $codeSet
      * @param string|null $modifier
      * @dataProvider getTestData
      */
-    public function testCreateISO15897String(string $expectedIsoString, string $expectedIETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
+    public function testCreateISO15897String(string $isoString, string $IETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
     {
-        $this->assertEquals($expectedIsoString, Locale::createISO15897String($language, $territory, $codeSet, $modifier));
+        $this->assertEquals($isoString, Locale::createISO15897String($language, $territory, $codeSet, $modifier));
     }
 
     /**
      * Test.
      *
-     * @param string      $expectedIsoString
-     * @param string      $expectedIETFTag
+     * @param string      $isoString
+     * @param string      $IETFTag
      * @param string      $language
      * @param string|null $territory
      * @param string|null $codeSet
      * @param string|null $modifier
      * @dataProvider getTestData
      */
-    public function testCreateIETFLanguageTag(string $expectedIsoString, string $expectedIETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
+    public function testCreateIETFLanguageTag(string $isoString, string $IETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
     {
-        $this->assertEquals($expectedIETFTag, Locale::createIETFLanguageTag($language, $territory));
+        $this->assertEquals($IETFTag, Locale::createIETFLanguageTag($language, $territory));
     }
 
     /**
@@ -115,5 +115,69 @@ class LocaleTest extends TestCase
         $this->assertEquals('fr_FR@euro', $locale->toISO15897String(true, false));
         $this->assertEquals('fr_FR.utf8', $locale->toISO15897String(false, true));
         $this->assertEquals('fr_FR', $locale->toISO15897String(true, true));
+    }
+
+    /**
+     * Test.
+     *
+     * @param string      $isoString
+     * @param string      $IETFTag
+     * @param string      $language
+     * @param string|null $territory
+     * @param string|null $codeSet
+     * @param string|null $modifier
+     * @dataProvider getTestData
+     */
+    public function testCreateFromISO15897String(string $isoString, string $IETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
+    {
+        $locale = Locale::createFromISO15897String($isoString);
+
+        $this->assertEquals(Str::lower($language), $locale->language());
+        $this->assertEquals(Str::upper($territory), $locale->territory());
+        $this->assertEquals($codeSet, $locale->codeSet());
+        $this->assertEquals($modifier, $locale->modifier());
+        $this->assertEquals($isoString, $locale->toISO15897String());
+        $this->assertEquals($isoString, (string) $locale);
+        $this->assertEquals($IETFTag, $locale->toIETFLanguageTag());
+    }
+
+    /**
+     * Test.
+     */
+    public function testCreateFromISO15897StringThrowsInvalidArgumentException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $locale = Locale::createFromISO15897String('');
+    }
+
+    /**
+     * Test.
+     *
+     * @param string      $isoString
+     * @param string      $IETFTag
+     * @param string      $language
+     * @param string|null $territory
+     * @param string|null $codeSet
+     * @param string|null $modifier
+     * @dataProvider getTestData
+     */
+    public function testCreateFromIETFLanguageTag(string $isoString, string $IETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
+    {
+        $locale = Locale::createFromIETFLanguageTag($IETFTag);
+
+        $this->assertEquals(Str::lower($language), $locale->language());
+        $this->assertEquals(Str::upper($territory), $locale->territory());
+        $this->assertEmpty($locale->codeSet());
+        $this->assertEmpty($locale->modifier());
+        $this->assertEquals($IETFTag, $locale->toIETFLanguageTag());
+    }
+
+    /**
+     * Test.
+     */
+    public function testCreateFromIETFLanguageTagThrowsInvalidArgumentException()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $locale = Locale::createFromIETFLanguageTag('');
     }
 }

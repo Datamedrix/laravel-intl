@@ -18,12 +18,10 @@ use Illuminate\Support\Str;
 
 class Locale
 {
-    public const DEFAULT_LANGUAGE = 'en';
-
     /**
      * @var string
      */
-    private $language = self::DEFAULT_LANGUAGE;
+    private $language;
 
     /**
      * @var string|null
@@ -39,6 +37,56 @@ class Locale
      * @var string|null
      */
     private $modifier = null;
+
+    /**
+     * @param string $localeString
+     *
+     * @return Locale
+     *
+     * @throws \InvalidArgumentException if the designated string is empty or invalid
+     */
+    public static function createFromISO15897String(string $localeString): Locale
+    {
+        $localeString = trim($localeString);
+
+        if (empty($localeString)) {
+            throw new \InvalidArgumentException('The given ISO 15897 string is empty or invalid.');
+        }
+
+        $language = $territory = $codeSet = $modifier = null;
+
+        if (Str::contains($localeString, '@')) {
+            list($localeString, $modifier) = array_pad(explode('@', $localeString, 2), 2, null);
+        }
+
+        if (Str::contains($localeString, '.')) {
+            list($localeString, $codeSet) = array_pad(explode('.', $localeString, 2), 2, null);
+        }
+
+        list($language, $territory) = array_pad(explode('_', $localeString, 2), 2, null);
+
+        return new static($language, $territory, $codeSet, $modifier);
+    }
+
+    /**
+     * @param string $tag
+     *
+     * @return Locale
+     *
+     * @throws \InvalidArgumentException if the designated string is empty or invalid
+     */
+    public static function createFromIETFLanguageTag(string $tag): Locale
+    {
+        $tag = trim($tag);
+
+        if (empty($tag)) {
+            throw new \InvalidArgumentException('The given IETF language tag is empty or invalid.');
+        }
+
+        list($language, $territory) = array_pad(explode('-', $tag), 2, null);
+
+        return new static($language, $territory);
+    }
 
     /**
      * Locale constructor.
