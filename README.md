@@ -14,6 +14,25 @@ composer require "dmx/laravel-intl"
 
 and you are ready to go!
 
+## Usage
+
+You can use the the provided classes directly for your own purpose.
+
+### Locale
+
+```php
+$myLocale = new DMX\Application\Intl\Locale('en', 'GB', 'utf8');
+
+echo $myLocale->toISO15897String();
+echo $myLocale->toIETFLanguageTag();
+```
+
+This will generate the following output:
+```
+en_GB.utf8
+en-GB
+```
+
 ## Development - Getting Started
 
 See the [CONTRIBUTING](CONTRIBUTING.md) file.
