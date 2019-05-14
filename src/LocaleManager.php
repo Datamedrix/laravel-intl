@@ -14,8 +14,11 @@ declare(strict_types=1);
 
 namespace DMX\Application\Intl;
 
+use Illuminate\Support\Arr;
+use DMX\Application\Intl\Helper\LocaleStringConverter;
 use DMX\Application\Intl\Exceptions\InvalidLocaleException;
 use Illuminate\Contracts\Session\Session as SessionContract;
+use Illuminate\Contracts\Config\Repository as ConfigContract;
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 
 class LocaleManager
@@ -41,15 +44,22 @@ class LocaleManager
     private $session;
 
     /**
+     * @var ConfigContract
+     */
+    private $config;
+
+    /**
      * LocaleManager constructor.
      *
      * @param ApplicationContract $app
      * @param SessionContract     $session
+     * @param ConfigContract      $config
      */
-    public function __construct(ApplicationContract $app, SessionContract $session)
+    public function __construct(ApplicationContract $app, SessionContract $session, ConfigContract $config)
     {
         $this->app = $app;
         $this->session = $session;
+        $this->config = $config;
     }
 
     /**
@@ -87,13 +97,24 @@ class LocaleManager
     public function getCurrentLocale(): Locale
     {
         if ($this->locale === null) {
+            $locale = null;
             if ($this->session->has(self::SESSION_KEY)) {
-                $localString = $this->session->get(self::SESSION_KEY, setlocale(LC_CTYPE, 0));
-            } else {
-                $localString = setlocale(LC_CTYPE, 0);
+                $locale = $this->session->get(self::SESSION_KEY, null);
             }
 
-            $this->locale = Locale::createFromISO15897String($localString);
+            if ($locale === null) {
+                $localeString = setlocale(LC_CTYPE, 0);
+                $details = LocaleStringConverter::explodeISO15897String(setlocale(LC_CTYPE, 0));
+                $settings = $this->getLocaleSettingsFromConfig($details['language'], $details['territory']);
+                foreach ($this->getLocaleSettingsFromSystem() as $setting => $value) {
+                    if (!isset($setting) || $settings[$setting] === null) {
+                        $settings[$setting] = $value;
+                    }
+                }
+                $locale = Locale::createFromISO15897String($localeString, $settings);
+            }
+
+            $this->locale = $locale;
         }
 
         return $this->locale;
@@ -107,6 +128,45 @@ class LocaleManager
     public function setLocaleAnPutIntoSession(Locale $locale)
     {
         $this->setLocale($locale);
-        $this->session->put(self::SESSION_KEY, $locale->toISO15897String());
+        $this->session->put(self::SESSION_KEY, $locale);
+    }
+
+    /**
+     * @param string      $language
+     * @param string|null $territory
+     *
+     * @return array
+     */
+    protected function getLocaleSettingsFromConfig(string $language, ?string $territory = null): array
+    {
+        $configKey = 'locale.settings.' . $language . (!empty($territory) ? '-' . $territory : '');
+        if ($this->config->has($configKey)) {
+            $settings = $this->config->get($configKey, null);
+        } else {
+            $configKey = 'locale.settings.' . $language;
+            $settings = $this->config->get($configKey, null);
+        }
+
+        if (empty($settings)) {
+            $settings = $this->config->get('locale.defaults.settings', null);
+        }
+
+        return array_merge(Locale::SETTINGS_TEMPLATE, Arr::wrap($settings));
+    }
+
+    /**
+     * @return array
+     */
+    protected function getLocaleSettingsFromSystem(): array
+    {
+        return array_merge(
+            Locale::SETTINGS_TEMPLATE,
+            [
+                'decimalPoint' => localeconv()['decimal_point'],
+                'thousandsSeparator' => localeconv()['thousands_sep'],
+                'positiveSign' => localeconv()['positive_sign'],
+                'negativeSign' => localeconv()['negative_sign'],
+            ]
+        );
     }
 }

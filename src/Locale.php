@@ -15,9 +15,29 @@ declare(strict_types=1);
 namespace DMX\Application\Intl;
 
 use Illuminate\Support\Str;
+use DMX\Application\Intl\Helper\LocaleStringConverter;
 
-class Locale
+class Locale implements \Serializable
 {
+    /**
+     * @var array
+     */
+    public const SETTINGS_TEMPLATE = [
+        'decimalPoint' => null,
+        'thousandsSeparator' => null,
+        'positiveSign' => null,
+        'negativeSign' => null,
+        'formatting' => [
+            'date' => null,
+            'datetime' => null,
+            'timestamp' => null,
+            'time' => null,
+            'decimals' => null,
+            'number' => null,
+            'currency' => null,
+        ],
+    ];
+
     /**
      * @var string
      */
@@ -39,53 +59,50 @@ class Locale
     private $modifier = null;
 
     /**
-     * @param string $localeString
+     * @var array
+     */
+    private $settings = self::SETTINGS_TEMPLATE;
+
+    /**
+     * @param string     $localeString
+     * @param array|null $settings
      *
      * @return Locale
      *
-     * @throws \InvalidArgumentException if the designated string is empty or invalid
+     * @throws \InvalidArgumentException if the given locale string is empty or invalid
      */
-    public static function createFromISO15897String(string $localeString): Locale
+    public static function createFromISO15897String(string $localeString, ?array $settings = null): Locale
     {
-        $localeString = trim($localeString);
+        $locale = LocaleStringConverter::explodeISO15897String($localeString);
 
-        if (empty($localeString)) {
-            throw new \InvalidArgumentException('The given ISO 15897 string is empty or invalid.');
-        }
-
-        $language = $territory = $codeSet = $modifier = null;
-
-        if (Str::contains($localeString, '@')) {
-            list($localeString, $modifier) = array_pad(explode('@', $localeString, 2), 2, null);
-        }
-
-        if (Str::contains($localeString, '.')) {
-            list($localeString, $codeSet) = array_pad(explode('.', $localeString, 2), 2, null);
-        }
-
-        list($language, $territory) = array_pad(explode('_', $localeString, 2), 2, null);
-
-        return new static($language, $territory, $codeSet, $modifier);
+        return new static(
+            $locale['language'],
+            $locale['territory'],
+            $locale['codeSet'],
+            $locale['modifier'],
+            $settings
+        );
     }
 
     /**
-     * @param string $tag
+     * @param string     $tag
+     * @param array|null $settings
      *
      * @return Locale
      *
-     * @throws \InvalidArgumentException if the designated string is empty or invalid
+     * @throws \InvalidArgumentException if the given language tag is empty or invalid
      */
-    public static function createFromIETFLanguageTag(string $tag): Locale
+    public static function createFromIETFLanguageTag(string $tag, ?array $settings = null): Locale
     {
-        $tag = trim($tag);
+        $locale = LocaleStringConverter::explodeIETFLanguageTag($tag);
 
-        if (empty($tag)) {
-            throw new \InvalidArgumentException('The given IETF language tag is empty or invalid.');
-        }
-
-        list($language, $territory) = array_pad(explode('-', $tag), 2, null);
-
-        return new static($language, $territory);
+        return new static(
+            $locale['language'],
+            $locale['territory'],
+            $locale['codeSet'],
+            $locale['modifier'],
+            $settings
+        );
     }
 
     /**
@@ -95,13 +112,15 @@ class Locale
      * @param string|null $territory
      * @param string|null $codeSet
      * @param string|null $modifier
+     * @param array|null  $settings
      */
-    public function __construct(string $language, ?string $territory = null, ?string $codeSet = null, ?string $modifier = null)
+    public function __construct(string $language, ?string $territory = null, ?string $codeSet = null, ?string $modifier = null, ?array $settings = null)
     {
         $this->language = Str::lower(trim($language));
         $this->territory = !empty($territory) ? Str::upper(trim($territory)) : null;
         $this->codeSet = !empty($codeSet) ? trim($codeSet) : null;
         $this->modifier = !empty($modifier) ? trim($modifier) : null;
+        $this->settings = !empty($settings) ? array_merge(self::SETTINGS_TEMPLATE, $settings) : self::SETTINGS_TEMPLATE;
     }
 
     /**
@@ -137,49 +156,11 @@ class Locale
     }
 
     /**
-     * Creates an ISO/IEC 15897 formatted string based on the given information.
-     *
-     * Format: language[_territory][.codeset][@modifier]
-     * Example(s):
-     *  - en
-     *  - en_GB
-     *  - de_AT.UTF-8
-     *
-     * @param string      $language
-     * @param string|null $territory
-     * @param string|null $codeSet
-     * @param string|null $modifier
-     *
-     * @return string
+     * @return array
      */
-    public static function createISO15897String(string $language, ?string $territory = null, ?string $codeSet = null, ?string $modifier = null): string
+    public function settings(): array
     {
-        return Str::lower(trim($language))
-            . (!empty($territory) ? '_' . Str::upper(trim($territory)) : '')
-            . (!empty($codeSet) ? '.' . trim($codeSet) : '')
-            . (!empty($modifier) ? '@' . trim($modifier) : '')
-        ;
-    }
-
-    /**
-     * Creates an IETF language tag based on the given information.
-     *
-     * Format: language[-territory]
-     * Example(s):
-     *  - en
-     *  - en-GB
-     *  - de-AT
-     *
-     * @param string      $language
-     * @param string|null $territory
-     *
-     * @return string
-     */
-    public static function createIETFLanguageTag(string $language, ?string $territory = null)
-    {
-        return Str::lower(trim($language))
-            . (!empty($territory) ? '-' . Str::upper(trim($territory)) : '')
-        ;
+        return $this->settings;
     }
 
     /**
@@ -194,7 +175,7 @@ class Locale
      */
     public function toISO15897String(bool $excludeCodeSet = false, bool $excludeModifier = false): string
     {
-        return self::createISO15897String(
+        return LocaleStringConverter::createISO15897String(
             $this->language(),
             $this->territory(),
             $excludeCodeSet === false ? $this->codeSet() : null,
@@ -211,7 +192,7 @@ class Locale
      */
     public function toIETFLanguageTag(): string
     {
-        return self::createIETFLanguageTag($this->language(), $this->territory());
+        return LocaleStringConverter::createIETFLanguageTag($this->language(), $this->territory());
     }
 
     /**
@@ -220,5 +201,49 @@ class Locale
     public function __toString(): string
     {
         return $this->toISO15897String();
+    }
+
+    /**
+     * String representation of object.
+     *
+     * @see https://php.net/manual/en/serializable.serialize.php
+     *
+     * @return string the string representation of the object or null
+     *
+     * @since 5.1.0
+     */
+    public function serialize(): string
+    {
+        return serialize([
+            'language' => $this->language,
+            'territory' => $this->territory,
+            'codeSet' => $this->codeSet,
+            'modifier' => $this->modifier,
+            'settings' => $this->settings,
+        ]);
+    }
+
+    /**
+     * Constructs the object.
+     *
+     * @see https://php.net/manual/en/serializable.unserialize.php
+     *
+     * @param string $serialized the string representation of the object
+     *
+     * @return void
+     *
+     * @since 5.1.0
+     */
+    public function unserialize($serialized)
+    {
+        if (!empty($serialized)) {
+            $data = unserialize($serialized);
+
+            $this->language = $data['language'] ?? '?';
+            $this->territory = $data['territory'] ?? null;
+            $this->codeSet = $data['codeSet'] ?? null;
+            $this->modifier = $data['modifier'] ?? null;
+            $this->settings = $data['settings'] ?? self::SETTINGS_TEMPLATE;
+        }
     }
 }

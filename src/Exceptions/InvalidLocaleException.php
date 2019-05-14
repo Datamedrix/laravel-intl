@@ -23,6 +23,8 @@ class InvalidLocaleException extends \InvalidArgumentException
 
     /**
      * {@inheritdoc}
+     *
+     * @codeCoverageIgnore
      */
     public function __construct(?string $message = null, int $code = 0, \Throwable $previous = null)
     {
@@ -37,6 +39,7 @@ class InvalidLocaleException extends \InvalidArgumentException
      * @param string|null $message
      *
      * @return InvalidLocaleException
+     * @codeCoverageIgnore
      */
     public static function becauseLocaleDoesNotExist(?string $message = null): InvalidLocaleException
     {

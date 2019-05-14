@@ -67,34 +67,27 @@ class LocaleTest extends TestCase
 
     /**
      * Test.
-     *
-     * @param string      $isoString
-     * @param string      $IETFTag
-     * @param string      $language
-     * @param string|null $territory
-     * @param string|null $codeSet
-     * @param string|null $modifier
-     * @dataProvider getTestData
      */
-    public function testCreateISO15897String(string $isoString, string $IETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
+    public function testSettingsGetter()
     {
-        $this->assertEquals($isoString, Locale::createISO15897String($language, $territory, $codeSet, $modifier));
-    }
+        $settings = [
+            'decimalPoint' => 'A',
+            'thousandsSeparator' => 'B',
+            'negativeSign' => 'D',
+            'formatting' => [
+                'date' => 'A-B-C',
+                'datetime' => 'A-B-C e:f',
+                'timestamp' => 'A-B-C e:f:00 -1',
+                'decimals' => rand(0, 9),
+                'number' => '100.000.000,1234',
+            ],
+        ];
 
-    /**
-     * Test.
-     *
-     * @param string      $isoString
-     * @param string      $IETFTag
-     * @param string      $language
-     * @param string|null $territory
-     * @param string|null $codeSet
-     * @param string|null $modifier
-     * @dataProvider getTestData
-     */
-    public function testCreateIETFLanguageTag(string $isoString, string $IETFTag, string $language, ?string $territory, ?string $codeSet, ?string $modifier)
-    {
-        $this->assertEquals($IETFTag, Locale::createIETFLanguageTag($language, $territory));
+        $locale = new Locale('TEST');
+        $this->assertEquals(Locale::SETTINGS_TEMPLATE, $locale->settings());
+
+        $locale = new Locale('TEST', null, null, null, $settings);
+        $this->assertEquals(array_merge(Locale::SETTINGS_TEMPLATE, $settings), $locale->settings());
     }
 
     /**
@@ -179,5 +172,44 @@ class LocaleTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $locale = Locale::createFromIETFLanguageTag('');
+    }
+
+    /**
+     * Test.
+     */
+    public function testSerialize()
+    {
+        $settings = [
+            'decimalPoint' => 'A',
+            'thousandsSeparator' => 'B',
+            'positiveSign' => 'C',
+            'negativeSign' => 'D',
+            'formatting' => [
+                'date' => 'A-B-C',
+                'datetime' => 'A-B-C e:f',
+                'timestamp' => 'A-B-C e:f:00 -1',
+                'time' => 'e:f:00',
+                'decimals' => rand(0, 9),
+                'number' => '100.000.000,1234',
+                'currency' => 'EDOLLER',
+            ],
+        ];
+        $locale = new Locale('foo', 'BAR', 'utf16', 'euro', $settings);
+
+        $expected = serialize([
+            'language' => 'foo',
+            'territory' => 'BAR',
+            'codeSet' => 'utf16',
+            'modifier' => 'euro',
+            'settings' => $settings,
+        ]);
+        $serializedString = $locale->serialize();
+
+        $this->assertNotEmpty($serializedString);
+        $this->assertIsString($serializedString);
+        $this->assertEquals($expected, $serializedString);
+
+        $serializedString = serialize($locale);
+        $this->assertEquals($locale, unserialize($serializedString));
     }
 }
