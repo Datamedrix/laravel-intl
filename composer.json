@@ -1,10 +1,18 @@
 {
     "name": "dmx/laravel-intl",
     "description": "A lightweight and easy to use internationalization library to enhance your Laravel application.",
-    "keywords": ["datamedrix", "support", "laravel", "internationalization", "intl", "i18n", "l10n"],
+    "keywords": [
+        "datamedrix",
+        "support",
+        "laravel",
+        "internationalization",
+        "intl",
+        "i18n",
+        "l10n"
+    ],
     "license": "MIT",
     "type": "library",
-    "version": "0.0.0",
+    "version": "1.0.0",
     "require": {
         "php": "^7.2.0",
         "ext-intl": "*",
