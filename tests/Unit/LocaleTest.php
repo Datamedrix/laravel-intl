@@ -212,4 +212,64 @@ class LocaleTest extends TestCase
         $serializedString = serialize($locale);
         $this->assertEquals($locale, unserialize($serializedString));
     }
+
+    /**
+     * Test.
+     */
+    public function testDateFormat()
+    {
+        $locale = new Locale('de', 'AT', 'utf8', null);
+
+        $this->assertEquals('dd.MM.yy', $locale->dateFormat());
+    }
+
+    /**
+     * Test.
+     */
+    public function testDatetimeFormat()
+    {
+        $locale = new Locale('de', 'AT', 'utf8', null);
+
+        $this->assertEquals('dd.MM.y, HH:mm', $locale->datetimeFormat());
+    }
+
+    /**
+     * Test.
+     */
+    public function testTimestampFormat()
+    {
+        $locale = new Locale('de', 'AT', 'utf8', null);
+
+        $this->assertEquals('EEEE, d. MMMM y \'um\' HH:mm:ss', $locale->timestampFormat());
+    }
+
+    /**
+     * Test.
+     */
+    public function testTimeFormat()
+    {
+        $locale = new Locale('de', 'AT', 'utf8', null);
+
+        $this->assertEquals('HH:mm:ss', $locale->timeFormat());
+    }
+
+    /**
+     * Test.
+     */
+    public function testNumberFormat()
+    {
+        $locale = new Locale('de', 'AT', 'utf8', null);
+
+        $this->assertEquals('#,##0.###', $locale->numberFormat());
+    }
+
+    /**
+     * Test.
+     */
+    public function testCurrencyFormat()
+    {
+        $locale = new Locale('de', 'AT', 'utf8', null);
+
+        $this->assertEquals('#E0', $locale->currencyFormat());
+    }
 }

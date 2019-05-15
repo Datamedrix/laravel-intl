@@ -14,6 +14,9 @@ declare(strict_types=1);
 
 namespace DMX\Application\Intl;
 
+use NumberFormatter;
+use IntlDateFormatter;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use DMX\Application\Intl\Helper\LocaleStringConverter;
 
@@ -62,6 +65,18 @@ class Locale implements \Serializable
      * @var array
      */
     private $settings = self::SETTINGS_TEMPLATE;
+
+    /**
+     * @var array
+     */
+    private $formatting = [
+        'date' => null,
+        'datetime' => null,
+        'timestamp' => null,
+        'time' => null,
+        'number' => null,
+        'currency' => null,
+    ];
 
     /**
      * @param string     $localeString
@@ -164,6 +179,17 @@ class Locale implements \Serializable
     }
 
     /**
+     * @param string     $key
+     * @param mixed|null $default
+     *
+     * @return mixed|null
+     */
+    public function setting(string $key, $default = null)
+    {
+        return Arr::get($this->settings(), $key, $default) ?: $default;
+    }
+
+    /**
      * Get the ISO/IEC 15897 formatted string of the locale.
      *
      * @param bool $excludeCodeSet
@@ -193,6 +219,115 @@ class Locale implements \Serializable
     public function toIETFLanguageTag(): string
     {
         return LocaleStringConverter::createIETFLanguageTag($this->language(), $this->territory());
+    }
+
+    /**
+     * @return string
+     */
+    public function dateFormat(): string
+    {
+        if ($this->formatting['date'] === null) {
+            $this->formatting['date'] = $this->setting(
+                'formatting.date',
+                Factory::createIntlDateFormatter(
+                    $this->toISO15897String(),
+                    IntlDateFormatter::SHORT,
+                    IntlDateFormatter::NONE
+                )->getPattern()
+            );
+        }
+
+        return $this->formatting['date'];
+    }
+
+    /**
+     * @return string
+     */
+    public function datetimeFormat(): string
+    {
+        if ($this->formatting['datetime'] === null) {
+            $this->formatting['datetime'] = $this->setting(
+                'formatting.datetime',
+                Factory::createIntlDateFormatter(
+                    $this->toISO15897String(),
+                    IntlDateFormatter::MEDIUM,
+                    IntlDateFormatter::SHORT
+                )->getPattern()
+            );
+        }
+
+        return $this->formatting['datetime'];
+    }
+
+    /**
+     * @return string
+     */
+    public function timestampFormat(): string
+    {
+        if ($this->formatting['timestamp'] === null) {
+            $this->formatting['timestamp'] = $this->setting(
+                'formatting.timestamp',
+                Factory::createIntlDateFormatter(
+                    $this->toISO15897String(),
+                    IntlDateFormatter::FULL,
+                    IntlDateFormatter::MEDIUM
+                )->getPattern()
+            );
+        }
+
+        return $this->formatting['timestamp'];
+    }
+
+    /**
+     * @return string
+     */
+    public function timeFormat(): string
+    {
+        if ($this->formatting['time'] === null) {
+            $this->formatting['time'] = $this->setting(
+                'formatting.time',
+                Factory::createIntlDateFormatter(
+                    $this->toISO15897String(),
+                    IntlDateFormatter::NONE,
+                    IntlDateFormatter::MEDIUM
+                )->getPattern()
+            );
+        }
+
+        return $this->formatting['time'];
+    }
+
+    /**
+     * @return string
+     */
+    public function numberFormat(): string
+    {
+        if ($this->formatting['number'] === null) {
+            $this->formatting['number'] = $this->setting(
+                'formatting.number',
+                Factory::createIntlNumberFormatter($this->toISO15897String(), NumberFormatter::TYPE_INT32)->getPattern()
+            );
+        }
+
+        return $this->formatting['number'];
+    }
+
+    /**
+     * @return string
+     */
+    public function currencyFormat(): string
+    {
+        if ($this->formatting['currency'] === null) {
+            $this->formatting['currency'] = $this->setting(
+                'formatting.currency',
+                Factory::createIntlNumberFormatter(
+                    $this->toISO15897String(),
+                    NumberFormatter::TYPE_CURRENCY
+                )->getPattern()
+            );
+        }
+
+        return $this->formatting['currency'];
     }
 
     /**
