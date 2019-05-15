@@ -92,6 +92,24 @@ class LocaleManager
     }
 
     /**
+     * @param string $localeString
+     *
+     * @return Locale
+     */
+    public function createLocale(string $localeString): Locale
+    {
+        $details = LocaleStringConverter::explodeISO15897String($localeString);
+        $settings = $this->getLocaleSettingsFromConfig($details['language'], $details['territory']);
+        foreach ($this->getLocaleSettingsFromSystem() as $setting => $value) {
+            if (!isset($setting) || $settings[$setting] === null) {
+                $settings[$setting] = $value;
+            }
+        }
+
+        return Locale::createFromISO15897String($localeString, $settings);
+    }
+
+    /**
      * @return Locale
      */
     public function getCurrentLocale(): Locale
@@ -100,18 +118,13 @@ class LocaleManager
             $locale = null;
             if ($this->session->has(self::SESSION_KEY)) {
                 $locale = $this->session->get(self::SESSION_KEY, null);
+                if (!$locale instanceof Locale) {
+                    $locale = null;
+                }
             }
 
             if ($locale === null) {
-                $localeString = setlocale(LC_CTYPE, 0);
-                $details = LocaleStringConverter::explodeISO15897String(setlocale(LC_CTYPE, 0));
-                $settings = $this->getLocaleSettingsFromConfig($details['language'], $details['territory']);
-                foreach ($this->getLocaleSettingsFromSystem() as $setting => $value) {
-                    if (!isset($setting) || $settings[$setting] === null) {
-                        $settings[$setting] = $value;
-                    }
-                }
-                $locale = Locale::createFromISO15897String($localeString, $settings);
+                $locale = $this->createLocale(setlocale(LC_CTYPE, 0));
             }
 
             $this->locale = $locale;
@@ -121,11 +134,19 @@ class LocaleManager
     }
 
     /**
+     * @return string
+     */
+    public function getCurrentLanguage(): string
+    {
+        return $this->getCurrentLocale()->language();
+    }
+
+    /**
      * @param Locale $locale
      *
      * @throws InvalidLocaleException if the given locale does not exist on the environment
      */
-    public function setLocaleAnPutIntoSession(Locale $locale)
+    public function setLocaleAndPutIntoSession(Locale $locale)
     {
         $this->setLocale($locale);
         $this->session->put(self::SESSION_KEY, $locale);

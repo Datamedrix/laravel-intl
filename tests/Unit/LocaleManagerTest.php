@@ -203,13 +203,14 @@ class LocaleManagerTest extends TestCase
             ->expects($this->once())
             ->method('has')
             ->with(LocaleManager::SESSION_KEY)
-            ->willReturn(false)
+            ->willReturn(true)
         ;
 
         $this->sessionMock
-            ->expects($this->never())
+            ->expects($this->once())
             ->method('get')
             ->with(LocaleManager::SESSION_KEY, null)
+            ->willReturn('foo-Bar') // return an invalid locale to test the instanceof check
         ;
 
         $details = LocaleStringConverter::explodeISO15897String(setlocale(LC_CTYPE, 0));
@@ -344,7 +345,7 @@ class LocaleManagerTest extends TestCase
     /**
      * Test.
      */
-    public function testSetLocalAnPutIntoSession()
+    public function testSetLocalAndPutIntoSession()
     {
         $this->appMock
             ->expects($this->once())
@@ -358,7 +359,17 @@ class LocaleManagerTest extends TestCase
             ->with(LocaleManager::SESSION_KEY, $this->dummyLocale->toISO15897String())
         ;
 
-        $this->manager->setLocaleAnPutIntoSession($this->dummyLocale);
+        $this->manager->setLocaleAndPutIntoSession($this->dummyLocale);
         $this->assertEquals($this->dummyLocale->toISO15897String(), setlocale(LC_CTYPE, 0));
+    }
+
+    /**
+     * Test.
+     */
+    public function testGetCurrentLanguage()
+    {
+        $this->manager->setLocale($this->dummyLocale);
+
+        $this->assertEquals($this->dummyLocale->language(), $this->manager->getCurrentLanguage());
     }
 }
