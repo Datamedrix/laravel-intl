@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [1.1.0](https://github.com/Datamedrix/laravel-intl/compare/v1.0.0...v1.1.0) (2019-05-16)
+
+
+### Features
+
+* **helpers:** Add a lot of helper functions. ([18fa56f](https://github.com/Datamedrix/laravel-intl/commit/18fa56f))
+* **service-provider:** Register default configuration and add them to the publishes list. ([e37122a](https://github.com/Datamedrix/laravel-intl/commit/e37122a))
+
 # 1.0.0 (2019-05-15)
 
 ### Features
