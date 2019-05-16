@@ -35,7 +35,10 @@
     "autoload-dev": {
         "psr-4": {
             "DMX\\Application\\Intl\\Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
