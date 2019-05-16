@@ -22,6 +22,19 @@ use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 class ServiceProvider extends BaseServiceProvider
 {
     /**
+     * Bootstrap any application services.
+     *
+     * @return void
+     * @codeCoverageIgnore
+     */
+    public function boot()
+    {
+        $this->publishes([
+            __DIR__ . '/../config/locale.php' => config_path('locale.php'),
+        ]);
+    }
+
+    /**
      * Register any application services.
      * {@inheritdoc}
      *
@@ -30,6 +43,10 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
+        // Merge configuration
+        $this->mergeConfigFrom(__DIR__ . '/../config/locale.php', 'locale');
+
+        // Register the LocaleManager
         $this->app->singleton(LocaleManager::class, function (ApplicationContract $app) {
             return new LocaleManager(
                 $app,
@@ -38,6 +55,7 @@ class ServiceProvider extends BaseServiceProvider
             );
         });
 
+        // Register Leo :)
         $this->app->singleton(Leo::class, function (ApplicationContract $app) {
             return new Leo(
                 $app->make(LocaleManager::class)

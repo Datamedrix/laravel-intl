@@ -19,6 +19,11 @@ use IntlDateFormatter;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 
+/**
+ * Dict.Leo.Org inspired class to "translate" date, time and number formats :).
+ *
+ * @see https://dict.leo.org
+ */
 class Leo
 {
     public const DEFAULT_INT_CURRENCY_NOTATION = 'EUR';
