@@ -30,15 +30,15 @@
     "autoload": {
         "psr-4": {
             "DMX\\Application\\Intl\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "DMX\\Application\\Intl\\Tests\\": "tests/"
         },
         "files": [
             "src/helpers.php"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DMX\\Application\\Intl\\Tests\\": "tests/"
+        }
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
