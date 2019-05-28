@@ -22,6 +22,18 @@ use DMX\Application\Intl\Helper\LocaleStringConverter;
 
 class Locale implements \Serializable
 {
+    /** @var string */
+    public const DEFAULT_LANGUAGE = 'en';
+
+    /** @var string */
+    public const DEFAULT_TERRITORY = 'US';
+
+    /** @var string */
+    public const DEFAULT_CODE_SET = 'utf8';
+
+    /** @var string */
+    public const DEFAULT_LOCALE = self::DEFAULT_LANGUAGE . '_' . self::DEFAULT_TERRITORY . '.' . self::DEFAULT_CODE_SET;
+
     /**
      * @var array
      */

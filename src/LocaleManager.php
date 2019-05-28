@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace DMX\Application\Intl;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use DMX\Application\Intl\Helper\LocaleStringConverter;
 use DMX\Application\Intl\Exceptions\InvalidLocaleException;
 use Illuminate\Contracts\Session\Session as SessionContract;
@@ -124,7 +125,15 @@ class LocaleManager
             }
 
             if ($locale === null) {
-                $locale = $this->createLocale(setlocale(LC_CTYPE, 0));
+                $localeString = setlocale(LC_CTYPE, 0);
+                if (in_array(Str::lower($localeString), ['c', 'c.utf8', 'c.utf-8'])) {
+                    $localeString =
+                        $this->config->get('app.locale', Locale::DEFAULT_LANGUAGE . '_' . Locale::DEFAULT_TERRITORY)
+                            . '.'
+                            . $this->config->get('locale.defaults.codeSet', Locale::DEFAULT_CODE_SET)
+                    ;
+                }
+                $locale = $this->createLocale($localeString);
             }
 
             $this->locale = $locale;
